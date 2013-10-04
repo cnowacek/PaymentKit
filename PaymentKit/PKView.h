@@ -18,6 +18,7 @@
 
 @protocol PKViewDelegate <NSObject>
 @optional
+- (void) paymentViewDidBeginEditting:(PKView *)paymentView;
 - (void) paymentView:(PKView*)paymentView withCard:(PKCard*)card isValid:(BOOL)valid;
 @end
 

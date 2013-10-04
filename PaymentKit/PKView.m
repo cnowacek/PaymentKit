@@ -20,6 +20,7 @@
 #define kPKViewCardCVCFieldEndX 177
 
 #import <QuartzCore/QuartzCore.h>
+#import <PaymentKit/PKView.h>
 #import "PKView.h"
 #import "PKTextField.h"
 
@@ -79,14 +80,8 @@
     isInitialState = YES;
     isValidState   = NO;
     
-    self.frame = CGRectMake(self.frame.origin.x, self.frame.origin.y, 290, 46);
+    //self.frame = CGRectMake(self.frame.origin.x, self.frame.origin.y, 290, 46);
     self.backgroundColor = [UIColor clearColor];
-    
-    UIImageView *backgroundImageView = [[UIImageView alloc] initWithFrame:self.bounds];
-    backgroundImageView.image = [[UIImage imageNamed:@"textfield"]
-                                 resizableImageWithCapInsets:UIEdgeInsetsMake(0, 8, 0, 8)
-                                 resizingMode:UIImageResizingModeStretch];
-    [self addSubview:backgroundImageView];
     
     self.innerView = [[UIView alloc] initWithFrame:CGRectMake(40, 12, self.frame.size.width - 40, 20)];
     self.innerView.clipsToBounds = YES;
@@ -98,13 +93,8 @@
     
     [self.innerView addSubview:cardNumberField];
     
-    UIImageView *gradientImageView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 12, 34)];
-    gradientImageView.image = [UIImage imageNamed:@"gradient"];
-    [self.innerView addSubview:gradientImageView];
-    
     opaqueOverGradientView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 9, 34)];
-    opaqueOverGradientView.backgroundColor = [UIColor colorWithRed:0.9686 green:0.9686
-                                                              blue:0.9686 alpha:1.0000];
+    opaqueOverGradientView.backgroundColor = [UIColor whiteColor];
     opaqueOverGradientView.alpha = 0.0;
     [self.innerView addSubview:opaqueOverGradientView];
     
@@ -117,12 +107,12 @@
 
 - (void)setupPlaceholderView
 {
-    placeholderView = [[UIImageView alloc] initWithFrame:CGRectMake(12, 13, 32, 20)];
+    placeholderView = [[UIImageView alloc] initWithFrame:CGRectMake(12, 13, 37, 20)];
     placeholderView.backgroundColor = [UIColor clearColor];
     placeholderView.image = [UIImage imageNamed:@"placeholder"];
     
     CALayer *clip = [CALayer layer];
-    clip.frame = CGRectMake(32, 0, 4, 20);
+    clip.frame = CGRectMake(37, 0, 4, 20);
     clip.backgroundColor = [UIColor clearColor].CGColor;
     [placeholderView.layer addSublayer:clip];
 }
@@ -221,9 +211,8 @@
                              [cardExpiryField removeFromSuperview];
                              [cardCVCField removeFromSuperview];
                          }];
+        [self.cardNumberField becomeFirstResponder];
     }
-    
-    [self.cardNumberField becomeFirstResponder];
 }
 
 - (void)stateMeta
@@ -267,7 +256,7 @@
 - (BOOL)isValid
 {    
     return [self.cardNumber isValid] && [self.cardExpiry isValid] &&
-           [self.cardCVC isValid];
+           [self.cardCVC isValidWithType:self.cardNumber.cardType];
 }
 
 - (PKCard*)card
@@ -331,22 +320,22 @@
     
     switch (cardType) {
         case PKCardTypeAmex:
-            cardTypeName = @"amex";
+            cardTypeName = @"cc_amex";
             break;
-        case PKCardTypeDinersClub:
-            cardTypeName = @"diners";
-            break;
+//        case PKCardTypeDinersClub:
+//            cardTypeName = @"diners";
+//            break;
         case PKCardTypeDiscover:
-            cardTypeName = @"discover";
+            cardTypeName = @"cc_discover";
             break;
-        case PKCardTypeJCB:
-            cardTypeName = @"jcb";
-            break;
+//        case PKCardTypeJCB:
+//            cardTypeName = @"jcb";
+//            break;
         case PKCardTypeMasterCard:
-            cardTypeName = @"mastercard";
+            cardTypeName = @"cc_master";
             break;
         case PKCardTypeVisa:
-            cardTypeName = @"visa";
+            cardTypeName = @"cc_visa";
             break;
         default:
             break;
@@ -356,6 +345,15 @@
 }
 
 // Delegates
+
+- (BOOL)textFieldShouldBeginEditing:(UITextField *)textField {
+    if (!self.cardNumberField.isFirstResponder && !self.cardExpiryField.isFirstResponder && !self.cardCVCField.isFirstResponder) {
+        if ([self.delegate respondsToSelector:@selector(paymentViewDidBeginEditting:)]) {
+            [self.delegate paymentViewDidBeginEditting:self];
+        }
+    }
+    return YES;
+}
 
 - (void)textFieldDidBeginEditing:(UITextField *)textField
 {
