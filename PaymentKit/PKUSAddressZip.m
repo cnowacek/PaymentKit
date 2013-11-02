@@ -23,7 +23,7 @@
     return self;
 }
 
-- (BOOL) isValid
+- (BOOL)isValid
 {
     return zip.length == 5;
 }
